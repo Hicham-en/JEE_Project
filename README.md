@@ -33,7 +33,7 @@ L'application écoute sur `http://localhost:8080`.
 Compte administrateur seedé par Flyway :
 
 - Login : `admin`
-- Mot de passe : `Admin@1234`
+- Mot de passe : `Admin1234`
 
 Changez ce mot de passe immédiatement après la première connexion.
 
@@ -78,5 +78,3 @@ Les logs sont capturés en temps réel et le polling renvoie `{logs,status,metri
 ```bash
 mvn test
 ```
-
-Le rapport des tests est dans `TEST_REPORT.md`.
