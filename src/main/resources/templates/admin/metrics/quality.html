@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html th:replace="~{admin/layout :: html(content=~{::content})}">
+<head>
+    <title>Qualité | Admin</title>
+    <style>
+        .quality-grid { display:grid; grid-template-columns:280px 1fr; gap:24px; align-items:start; }
+        .quality-card { background:#111118; border:1px solid rgba(255,255,255,.06); border-radius:8px; padding:24px; }
+        .kappa-value { font-size:48px; font-weight:800; color:#00D4FF; margin:12px 0; }
+        .badge { display:inline-flex; border-radius:999px; padding:7px 12px; background:rgba(0,212,255,.12); color:#00D4FF; font-weight:700; }
+        .gauge { width:160px; height:160px; margin:16px auto; border-radius:50%; display:grid; place-items:center; background:conic-gradient(#00D4FF calc(var(--score) * 100%), rgba(255,255,255,.08) 0); }
+        .gauge-inner { width:118px; height:118px; border-radius:50%; background:#111118; display:grid; place-items:center; color:#E2E2E8; font-weight:700; }
+    </style>
+</head>
+<body>
+<div th:fragment="content">
+    <!-- Quality header -->
+    <div class="page-title">
+        <span th:text="'Qualité - ' + ${dataset.nom}">Qualité</span>
+        <a class="btn-outline" th:href="@{/admin/metrics}">Retour</a>
+    </div>
+
+    <!-- Avertissement si pas d'annotations -->
+    <div th:if="${warningMessage}" style="background: rgba(255, 191, 0, 0.1); border: 1px solid rgba(255, 191, 0, 0.3); border-radius: 8px; padding: 16px 20px; margin-bottom: 24px; color: #FFBF00;">
+        <span th:text="${warningMessage}">Avertissement</span>
+    </div>
+
+    <!-- Quality metrics -->
+    <div class="quality-grid">
+        <section class="quality-card">
+            <div style="color:#A0A0AB;">Fleiss Kappa</div>
+            <div class="kappa-value" th:text="${#numbers.formatDecimal(metrics.fleissKappa, 1, 3)}">0.000</div>
+            <span class="badge" th:text="${metrics.interpretation}">Interprétation</span>
+            <div class="gauge" th:style="'--score:' + ${metrics.fleissKappa != null ? T(java.lang.Math).max(0, T(java.lang.Math).min(1, metrics.fleissKappa)) : 0}">
+                <div class="gauge-inner" th:text="${metrics.nbTextesEvalues} + ' textes'">0 textes</div>
+            </div>
+        </section>
+
+        <section>
+            <h2 style="font-family:'Syne',sans-serif; font-size:20px; margin-bottom:16px;">Cohen Kappa par paire</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                    <tr><th>Annotateur 1</th><th>Annotateur 2</th><th>Kappa</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="pair : ${cohenPairs}">
+                        <td th:text="${pair.first}">A</td>
+                        <td th:text="${pair.second}">B</td>
+                        <td th:text="${#numbers.formatDecimal(pair.kappa, 1, 3)}">0.000</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(cohenPairs)}">
+                        <td colspan="3" style="text-align:center; color:#777; padding:28px;">Pas assez d'annotateurs pour calculer Cohen Kappa.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>
+</body>
+</html>

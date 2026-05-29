@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html th:replace="~{admin/layout :: html(content=~{::content})}">
+<head>
+    <title>Affectation | Admin</title>
+</head>
+<body>
+<div th:fragment="content">
+    
+    <div class="page-title">
+        Affectation : <span th:text="${dataset.nom}" style="color: #00D4FF; margin-left: 8px;">Dataset</span>
+    </div>
+
+    <div th:if="${errorMessage}" class="flash-message flash-error" th:text="${errorMessage}"></div>
+
+    <div style="background: #111118; border-radius: 12px; padding: 32px; max-width: 800px; border: 1px solid rgba(255,255,255,0.05);">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <p style="color: #A0A0AB;">Sélectionnez au moins 3 annotateurs pour procéder à l'assignation équilibrée (Algorithme Round-robin sur textes mélangés).</p>
+            <div id="counterBadge" style="background: rgba(255, 70, 70, 0.1); border: 1px solid rgba(255, 70, 70, 0.3); color: #FF4646; font-weight: 700; padding: 6px 12px; border-radius: 6px; font-size: 14px;">
+                0 annotateur sélectionné
+            </div>
+        </div>
+
+        <form th:action="@{/admin/datasets/{id}/assign(id=${dataset.id})}" method="post" id="assignForm">
+            <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+                <table>
+                    <thead style="position: sticky; top: 0; background: #111118; z-index: 10;">
+                        <tr>
+                            <th style="width: 50px;">
+                                <input type="checkbox" id="selectAll" style="accent-color: #00D4FF; width: 16px; height: 16px; cursor: pointer;">
+                            </th>
+                            <th>Nom</th>
+                            <th>Prénom</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${annotators.empty}">
+                            <td colspan="4" style="text-align: center; color: #666; padding: 20px;">Aucun annotateur actif disponible.</td>
+                        </tr>
+                        <tr th:each="ann : ${annotators}">
+                            <td>
+                                <!-- Grise et empêche sélection si déjà assigné -->
+                                <input type="checkbox" name="annotatorIds" class="annotator-checkbox"
+                                       th:value="${ann.id}"
+                                       th:if="${!assignedIds.contains(ann.id)}"
+                                       style="accent-color: #00D4FF; width: 16px; height: 16px; cursor: pointer;">
+                                       
+                                <input type="checkbox" disabled checked
+                                       th:if="${assignedIds.contains(ann.id)}"
+                                       style="width: 16px; height: 16px; cursor: not-allowed; opacity: 0.5;">
+                            </td>
+                            <td th:text="${ann.nom}">Nom</td>
+                            <td th:text="${ann.prenom}">Prenom</td>
+                            <td>
+                                <span th:if="${assignedIds.contains(ann.id)}" style="background: rgba(0,212,255,0.1); color: #00D4FF; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Déjà assigné</span>
+                                <span th:if="${!assignedIds.contains(ann.id)}" style="color: #666; font-size: 12px;">Apprêt</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 24px;">
+                <a th:href="@{/admin/datasets/{id}(id=${dataset.id})}" class="btn-outline">Annuler</a>
+                <button type="submit" class="btn-primary" id="btnSubmit" disabled style="opacity: 0.5; cursor: not-allowed;" title="Sélectionnez au moins 3 annotateurs">
+                    Valider Assignation
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Script pour le compteur live et activation du bouton Valider -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const checkboxes = document.querySelectorAll('.annotator-checkbox');
+            const selectAll = document.getElementById('selectAll');
+            const btnSubmit = document.getElementById('btnSubmit');
+            const counterBadge = document.getElementById('counterBadge');
+            
+            // Les déjà assignés comptent déjà dans le minimum requis
+            const preAssignedCount = document.querySelectorAll('input[type="checkbox"]:disabled:checked').length;
+
+            function updateCounter() {
+                const checkedCount = document.querySelectorAll('.annotator-checkbox:checked').length;
+                const total = checkedCount + preAssignedCount;
+                
+                counterBadge.textContent = total + " annotateur(s) assigné(s) / sélectionné(s)";
+                
+                if (total >= 3) {
+                    counterBadge.style.background = 'rgba(46, 204, 113, 0.1)';
+                    counterBadge.style.borderColor = 'rgba(46, 204, 113, 0.3)';
+                    counterBadge.style.color = '#2ECC71';
+                    
+                    btnSubmit.disabled = false;
+                    btnSubmit.style.opacity = '1';
+                    btnSubmit.style.cursor = 'pointer';
+                    btnSubmit.removeAttribute('title');
+                } else {
+                    counterBadge.style.background = 'rgba(255, 70, 70, 0.1)';
+                    counterBadge.style.borderColor = 'rgba(255, 70, 70, 0.3)';
+                    counterBadge.style.color = '#FF4646';
+                    
+                    btnSubmit.disabled = true;
+                    btnSubmit.style.opacity = '0.5';
+                    btnSubmit.style.cursor = 'not-allowed';
+                    btnSubmit.setAttribute('title', 'Sélectionnez au moins 3 annotateurs au total');
+                }
+            }
+
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', () => {
+                    updateCounter();
+                    selectAll.checked = document.querySelectorAll('.annotator-checkbox:not(:checked)').length === 0;
+                });
+            });
+
+            if(selectAll) {
+                selectAll.addEventListener('change', (e) => {
+                    checkboxes.forEach(cb => cb.checked = e.target.checked);
+                    updateCounter();
+                });
+            }
+
+            // Init call
+            updateCounter();
+        });
+    </script>
+
+</div>
+</body>
+</html>

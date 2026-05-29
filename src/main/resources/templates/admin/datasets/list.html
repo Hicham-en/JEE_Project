@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html th:replace="~{admin/layout :: html(content=~{::content})}">
+<head>
+    <title>Datasets | Admin</title>
+</head>
+<body>
+<div th:fragment="content">
+    
+    <div th:if="${successMessage}" class="flash-message flash-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="flash-message flash-error" th:text="${errorMessage}"></div>
+
+    <div class="page-title">
+        Datasets
+        <a th:href="@{/admin/datasets/create}" class="btn-primary">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            Créer Dataset
+        </a>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Description</th>
+                    <th>Langue</th>
+                    <th>Avancement</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${datasetsPage.content.empty}">
+                    <td colspan="5" style="text-align: center; color: #666; padding: 30px;">Aucun dataset trouvé.</td>
+                </tr>
+                <tr th:each="ds : ${datasetsPage.content}">
+                    <td th:text="${ds.nom}">Dataset NLP</td>
+                    <td th:text="${ds.description}">Desc</td>
+                    <td th:text="${ds.langue}">FR</td>
+                    <td style="width: 200px;">
+                        <div style="background: rgba(255,255,255,0.1); border-radius: 4px; height: 8px; width: 100%; overflow: hidden; position: relative;">
+                            <div style="background: linear-gradient(90deg, #00D4FF 0%, #8A2BE2 100%); height: 100%; transition: width 1s ease-in-out;" 
+                                 th:styleappend="|width: ${ds.progressPercent}%;|"></div>
+                        </div>
+                        <div style="font-size: 12px; color: #A0A0AB; margin-top: 4px;" th:text="${#numbers.formatDecimal(ds.progressPercent, 1, 1)} + '%'">0.0%</div>
+                    </td>
+                    <td style="text-align: right; display: flex; justify-content: flex-end; gap: 8px;">
+                        <a th:href="@{/admin/datasets/{id}(id=${ds.id})}" class="btn-outline" style="padding: 6px 12px; font-size: 13px;">Détails</a>
+                        <a th:href="@{/admin/datasets/{id}/assign(id=${ds.id})}" class="btn-primary" style="padding: 6px 12px; font-size: 13px;">Ajouter Annotateurs</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div th:if="${datasetsPage.totalPages > 1}" style="display: flex; gap: 8px; justify-content: center; margin-top: 20px;">
+        <a th:if="${not datasetsPage.first}" th:href="@{/admin/datasets(page=${datasetsPage.pageNumber - 1})}" class="btn-outline">&laquo; Précédent</a>
+        
+        <span th:each="i : ${#numbers.sequence(0, datasetsPage.totalPages - 1)}">
+            <a th:href="@{/admin/datasets(page=${i})}" 
+               th:text="${i + 1}" 
+               th:class="${i == datasetsPage.pageNumber} ? 'btn-primary' : 'btn-outline'"
+               style="padding: 8px 12px;">1</a>
+        </span>
+        
+        <a th:if="${not datasetsPage.last}" th:href="@{/admin/datasets(page=${datasetsPage.pageNumber + 1})}" class="btn-outline">Suivant &raquo;</a>
+    </div>
+
+</div>
+</body>
+</html>

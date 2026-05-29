@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>400 - Requête Invalide | AnnotateNLP</title>
+    <style>
+        body { background-color: #0A0A0F; color: #FFFFFF; font-family: 'DM Sans', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .error-card { text-align: center; border: 1px solid rgba(255, 170, 0, 0.4); padding: 40px; border-radius: 12px; background: rgba(255, 170, 0, 0.02); backdrop-filter: blur(10px); }
+        h1 { color: #FFAA00; font-family: 'Space Mono', monospace; font-size: 48px; margin: 0; }
+        p { margin: 20px 0; color: #aaa; }
+        a { color: #FFAA00; text-decoration: none; border: 1px solid #FFAA00; padding: 10px 20px; border-radius: 6px; transition: all 0.3s ease; }
+        a:hover { background: rgba(255, 170, 0, 0.1); }
+    </style>
+</head>
+<body>
+    <div class="error-card">
+        <h1>400</h1>
+        <p th:text="${errorMessage != null ? errorMessage : 'La requête soumise est invalide.'}">Requête invalide.</p>
+        <button onclick="window.history.back()" style="background:transparent; color:#FFAA00; border: 1px solid #FFAA00; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Retour</button>
+    </div>
+</body>
+</html>

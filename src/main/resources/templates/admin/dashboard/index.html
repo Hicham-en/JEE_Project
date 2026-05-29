@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/layout :: html(content=~{::content})}">
+<head>
+    <title>Dashboard & Métriques</title>
+</head>
+<body>
+<div th:fragment="content">
+    <h2>Dashboard - Qualité des Annotations</h2>
+
+    <div class="mb-4">
+        <label for="datasetSelect">Sélectionner un dataset :</label>
+        <select id="datasetSelect" class="input-field" onchange="window.location.href='/admin/dashboard/' + this.value">
+            <option value="" disabled selected th:if="${dataset == null}">-- Choisir un dataset --</option>
+            <option th:each="ds : ${datasets}" 
+                    th:value="${ds.id}" 
+                    th:text="${ds.nom}"
+                    th:selected="${dataset != null and dataset.id == ds.id}">
+            </option>
+        </select>
+    </div>
+
+    <div th:if="${dataset != null}">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3>Métriques Globales : <span th:text="${dataset.nom}"></span></h3>
+            <a th:href="@{/admin/dashboard/{id}/export(id=${dataset.id})}" class="btn btn-primary" style="background-color: #007bff; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none;">
+                ⬇️ Télécharger CSV (RFC 4180)
+            </a>
+        </div>
+        
+        <div class="grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 2rem; margin-top: 1rem;">
+            <div class="card p-4 border rounded shadow-sm bg-gray-50">
+                <h4>Avancement</h4>
+                <div style="font-size: 2rem; font-weight: bold; color: #28a745;">
+                    <span th:text="${#numbers.formatDecimal(progress, 1, 1)}"></span>%
+                </div>
+            </div>
+            
+            <div class="card p-4 border rounded shadow-sm bg-gray-50">
+                <h4>Accord Inter-Annotateurs (Fleiss' Kappa)</h4>
+                <div style="font-size: 2rem; font-weight: bold; color: #007bff;">
+                    <span th:text="${#numbers.formatDecimal(metrics.fleissKappa(), 1, 3)}"></span>
+                </div>
+                <div class="mt-2 text-sm text-gray-600">
+                    Interprétation : <strong th:text="${metrics.interpretation()}"></strong>
+                </div>
+            </div>
+        </div>
+        
+        <h3>Détection des Spammeurs</h3>
+        <p class="text-sm mb-4">
+            <em>Le score de suspicion est calculé sur une moyenne pondérée (Entropie de Shannon 40%, Kappa 30%, Temps 30%). Un score d'entropie < 0.15 flaggue immédiatement l'annotateur.</em>
+        </p>
+        
+        <table class="table w-full mb-4">
+            <thead>
+            <tr>
+                <th>Annotateur</th>
+                <th>Score de Suspicion (0 à 1)</th>
+                <th>Justifications</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="spammer : ${spammers}" th:class="${spammer.suspicionScore() > 0.8 ? 'bg-red-100' : ''}">
+                <td th:text="${spammer.prenom() + ' ' + spammer.nom()}"></td>
+                <td style="font-weight: bold; color: red;" th:text="${#numbers.formatDecimal(spammer.suspicionScore(), 1, 2)}"></td>
+                <td>
+                    <ul style="list-style: disc; padding-left: 20px;">
+                        <li th:each="raison : ${spammer.raisons()}" th:text="${raison}"></li>
+                    </ul>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(spammers)}">
+                <td colspan="3" class="text-center text-success font-bold" style="padding: 20px 0;">Aucun comportement suspect détecté.</td>
+            </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+</div>
+</body>
+</html>

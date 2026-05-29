@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>404 - Introuvable | AnnotateNLP</title>
+    <style>
+        body { background-color: #0A0A0F; color: #FFFFFF; font-family: 'DM Sans', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .error-card { text-align: center; border: 1px solid rgba(0, 212, 255, 0.2); padding: 40px; border-radius: 12px; background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(10px); }
+        h1 { color: #00D4FF; font-family: 'Space Mono', monospace; font-size: 48px; margin: 0; }
+        p { margin: 20px 0; color: #aaa; }
+        a { color: #00D4FF; text-decoration: none; border: 1px solid #00D4FF; padding: 10px 20px; border-radius: 6px; transition: all 0.3s ease; }
+        a:hover { background: rgba(0, 212, 255, 0.1); }
+    </style>
+</head>
+<body>
+    <div class="error-card">
+        <h1>404</h1>
+        <p th:text="${errorMessage != null ? errorMessage : 'La page ou la ressource demandée est introuvable.'}">Ressource introuvable.</p>
+        <a th:href="@{/}">Retour à l'accueil</a>
+    </div>
+</body>
+</html>

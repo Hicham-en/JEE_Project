@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html th:replace="~{admin/layout :: html(content=~{::content})}">
+<head>
+    <title>NLP Training | Admin</title>
+</head>
+<body>
+<div th:fragment="content">
+    <!-- NLP page header -->
+    <div class="page-title">
+        <span>NLP Training & Test</span>
+    </div>
+
+    <!-- Dataset actions table -->
+    <div class="table-container">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Dataset</th>
+                <th>Langue</th>
+                <th>Avancement</th>
+                <th style="text-align:right;">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="dataset : ${datasetsPage.content}">
+                <td th:text="${dataset.id}">1</td>
+                <td th:text="${dataset.nom}">Dataset</td>
+                <td th:text="${dataset.langue}">fr</td>
+                <td th:text="${#numbers.formatDecimal(dataset.progressPercent, 1, 1)} + '%'">0%</td>
+                <td style="text-align:right; display:flex; justify-content:flex-end; gap:10px;">
+                    <a class="btn-outline" th:href="@{/admin/nlp/{id}/new(id=${dataset.id})}">Lancer Training</a>
+                    <form th:action="@{/admin/nlp/{id}/test(id=${dataset.id})}" method="post">
+                        <input type="hidden" name="datasetId" th:value="${dataset.id}">
+                        <input type="hidden" name="learningRate" value="0.001">
+                        <input type="hidden" name="epochs" value="10">
+                        <input type="hidden" name="batchSize" value="32">
+                        <input type="hidden" name="scriptPath" value="test.py">
+                        <button type="submit" class="btn-primary">Lancer Test</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(datasetsPage.content)}">
+                <td colspan="5" style="text-align:center; color:#777; padding:28px;">Aucun dataset disponible.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

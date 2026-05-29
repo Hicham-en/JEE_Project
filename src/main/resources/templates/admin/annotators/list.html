@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/layout :: html(content=~{::content})}">
+<head>
+    <title>Gestion des Annotateurs - Admin</title>
+</head>
+<body>
+<div th:fragment="content">
+    <h2>Liste des Annotateurs</h2>
+
+    <div th:if="${successMessage}" class="alert-success">
+        <p th:text="${successMessage}"></p>
+        <p th:if="${generatedPassword}" class="font-bold border bg-gray p-2 mt-2">
+            Mot de passe généré (copiez-le, il ne sera plus affiché) : <span th:text="${generatedPassword}"></span>
+        </p>
+    </div>
+
+    <div class="mb-4">
+        <a th:href="@{/admin/annotators/create}" class="btn-primary">Créer un annotateur</a>
+    </div>
+
+    <table class="table w-full">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>Login</th>
+            <th>Actif</th>
+            <th>Tâches complétées</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="ann : ${annotators}">
+            <td th:text="${ann.id}"></td>
+            <td th:text="${ann.nom}"></td>
+            <td th:text="${ann.prenom}"></td>
+            <td th:text="${ann.login}"></td>
+            <td th:text="${ann.active ? 'Oui' : 'Non'}"></td>
+            <td th:text="${ann.tasksCompleted}"></td>
+            <td class="flex gap-2">
+                <a th:href="@{'/admin/annotators/' + ${ann.id} + '/edit'}" class="btn-secondary" th:if="${ann.active}">Éditer</a>
+                <form th:action="@{'/admin/annotators/' + ${ann.id} + '/delete'}" method="post" th:if="${ann.active}" style="display:inline;" onsubmit="return confirm('Attention ! Cela annulera aussi ses tâches en cours. Continuer ?');">
+                    <button type="submit" class="btn-danger">Désactiver</button>
+                </form>
+            </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(annotators)}">
+            <td colspan="7" class="text-center">Aucun annotateur trouvé.</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div th:if="${totalPages > 1}" class="pagination mt-4 flex gap-2">
+        <span th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+            <a th:href="@{/admin/annotators(page=${i})}"
+               th:text="${i + 1}"
+               th:class="${currentPage == i ? 'btn-primary' : 'btn-secondary'}">1</a>
+        </span>
+    </div>
+
+</div>
+</body>
+</html>

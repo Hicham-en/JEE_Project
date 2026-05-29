@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Espace Annotateur</title>
+</head>
+<body>
+<div>
+    <h2>Mes Tâches</h2>
+    <div th:if="${successMessage}" style="color: green;">
+        <span th:text="${successMessage}"></span>
+    </div>
+
+    <ul>
+        <li th:each="task : ${tasks.content()}">
+            <span th:text="${task.datasetName()}"></span> - 
+            <span th:text="${task.status()}"></span>
+            
+            <a th:href="@{/annotator/workspace/task/{id}(id=${task.id()})}">
+                Continuer l'annotation
+            </a>
+        </li>
+    </ul>
+</div>
+</body>
+</html>

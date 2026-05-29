@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Annoter Tâche</title>
+</head>
+<body>
+<div>
+    <h2>Annotation du dataset: <span th:text="${dataset.nom}"></span></h2>
+
+    <div th:each="tp : ${textPairs}">
+        <div style="border: 1px solid #ccc; margin: 10px; padding: 10px;">
+            <p><strong>Texte 1:</strong> <span th:text="${tp.text1}"></span></p>
+            <p><strong>Texte 2:</strong> <span th:text="${tp.text2}"></span></p>
+
+            <form th:action="@{/annotator/workspace/task/{id}/annotate(id=${task.id})}" method="post">
+                <input type="hidden" name="textPairId" th:value="${tp.id}" />
+                <label>Classe Choisie:</label>
+                <select name="chosenClass" required>
+                    <option value="" disabled selected>Choisir une classe</option>
+                    <option th:each="pc : ${dataset.possibleClasses}" 
+                            th:value="${pc.nom}" 
+                            th:text="${pc.nom}">
+                    </option>
+                </select>
+                <button type="submit">Valider</button>
+            </form>
+        </div>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <a th:href="@{/annotator/workspace}">Retour à la liste</a>
+    </div>
+</div>
+</body>
+</html>

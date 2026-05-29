@@ -1,0 +1,48 @@
+# Build output
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# Logs
+*.log
+logs/
+nohup.out
+
+# IDE metadata
+.idea/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local environment files
+.env
+.env.local
+.env.*
+!.env.example
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
+
+# Project docs and datasets to ignore
+run1.md
+prompt.md
+planing.md
+erreurs.md
+DECISIONS.md
+DATAMODEL.md
+ARCHITECTURE.md
+data/
+images/
+docs/

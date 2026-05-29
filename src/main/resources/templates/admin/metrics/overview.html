@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html th:replace="~{admin/layout :: html(content=~{::content})}">
+<head>
+    <title>Métriques | Admin</title>
+</head>
+<body>
+<div th:fragment="content">
+    <!-- Metrics overview header -->
+    <div class="page-title">
+        <span>Options avancées</span>
+    </div>
+
+    <!-- Dataset metrics table -->
+    <div class="table-container">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nom dataset</th>
+                <th>Langue</th>
+                <th>Avancement</th>
+                <th style="text-align:right;">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="dataset : ${datasetsPage.content}">
+                <td th:text="${dataset.id}">1</td>
+                <td th:text="${dataset.nom}">Dataset</td>
+                <td th:text="${dataset.langue}">fr</td>
+                <td th:text="${#numbers.formatDecimal(dataset.progressPercent, 1, 1)} + '%'">0%</td>
+                <td style="text-align:right; display:flex; justify-content:flex-end; gap:10px;">
+                    <a class="btn-outline" th:href="@{/admin/metrics/{id}/quality(id=${dataset.id})}">Afficher métrique</a>
+                    <a class="btn-primary" th:href="@{/admin/metrics/{id}/spammers(id=${dataset.id})}">Spammeurs</a>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(datasetsPage.content)}">
+                <td colspan="5" style="text-align:center; color:#777; padding:28px;">Aucun dataset disponible.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

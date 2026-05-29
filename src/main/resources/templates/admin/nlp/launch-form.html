@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html th:replace="~{admin/layout :: html(content=~{::content})}">
+<head>
+    <title>Lancer NLP | Admin</title>
+    <style>
+        .form-panel { background:#111118; border:1px solid rgba(255,255,255,.06); border-radius:8px; padding:24px; max-width:760px; }
+        .form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+        .field { display:flex; flex-direction:column; gap:8px; }
+        .field label { color:#A0A0AB; font-size:14px; }
+        .field input { background:#0A0A0F; border:1px solid rgba(255,255,255,.12); color:#fff; border-radius:6px; padding:12px 14px; font-family:'DM Sans',sans-serif; }
+        .actions { display:flex; gap:12px; margin-top:22px; }
+        .history { margin-top:32px; }
+        .error-text { color:#FF6464; font-size:13px; }
+    </style>
+</head>
+<body>
+<div th:fragment="content">
+    <!-- NLP launch header -->
+    <div class="page-title">
+        <span th:text="'Lancer NLP - ' + ${dataset.nom}">Lancer NLP</span>
+        <a th:href="@{/admin/nlp}" class="btn-outline">Retour</a>
+    </div>
+
+    <!-- Hyperparameter form -->
+    <form class="form-panel" th:object="${runRequest}" th:action="@{/admin/nlp/{id}/train(id=${dataset.id})}" method="post">
+        <input type="hidden" th:field="*{datasetId}">
+        <div class="form-grid">
+            <div class="field">
+                <label for="learningRate">Learning Rate</label>
+                <input id="learningRate" type="number" th:field="*{learningRate}" min="0.0001" step="0.0001">
+                <span class="error-text" th:if="${#fields.hasErrors('learningRate')}" th:errors="*{learningRate}"></span>
+            </div>
+            <div class="field">
+                <label for="epochs">Epochs</label>
+                <input id="epochs" type="number" th:field="*{epochs}" min="1" max="200">
+                <span class="error-text" th:if="${#fields.hasErrors('epochs')}" th:errors="*{epochs}"></span>
+            </div>
+            <div class="field">
+                <label for="batchSize">Batch Size</label>
+                <input id="batchSize" type="number" th:field="*{batchSize}" min="1">
+                <span class="error-text" th:if="${#fields.hasErrors('batchSize')}" th:errors="*{batchSize}"></span>
+            </div>
+            <div class="field">
+                <label for="scriptPath">Script path</label>
+                <input id="scriptPath" type="text" th:field="*{scriptPath}" placeholder="train.py">
+                <span class="error-text" th:if="${#fields.hasErrors('scriptPath')}" th:errors="*{scriptPath}"></span>
+            </div>
+        </div>
+        <div class="actions">
+            <button id="launchButton" type="submit" class="btn-primary">Lancer</button>
+            <button type="submit" class="btn-outline" th:formaction="@{/admin/nlp/{id}/test(id=${dataset.id})}">Lancer Test</button>
+        </div>
+    </form>
+
+    <!-- Run history -->
+    <section class="history">
+        <h2 style="font-family:'Syne',sans-serif; font-size:20px; margin-bottom:16px;">Historique</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr><th>Date</th><th>Type</th><th>Status</th><th>Durée</th><th>Accuracy</th><th></th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="run : ${history}">
+                    <td th:text="${run.startTime}">date</td>
+                    <td th:text="${run.type}">TRAINING</td>
+                    <td th:text="${run.status}">RUNNING</td>
+                    <td th:text="${run.durationSeconds != null ? run.durationSeconds + 's' : '-'}">-</td>
+                    <td th:text="${run.accuracy != null ? run.accuracy : '-'}">-</td>
+                    <td style="text-align:right;"><a class="btn-outline" th:href="@{/admin/nlp/runs/{id}(id=${run.id})}">Logs</a></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(history)}">
+                    <td colspan="6" style="text-align:center; color:#777; padding:28px;">Aucun run pour ce dataset.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <script>
+        document.querySelector('form').addEventListener('submit', () => {
+            const button = document.getElementById('launchButton');
+            button.disabled = true;
+            button.textContent = 'Lancement...';
+        });
+    </script>
+</div>
+</body>
+</html>

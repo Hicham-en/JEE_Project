@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | AnnotateNLP</title>
+    <!-- Google Fonts import -->
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #0D0D14;
+            color: #FFFFFF;
+            font-family: 'DM Sans', sans-serif;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 240px;
+            background-color: #111118;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100%;
+        }
+
+        .sidebar-brand {
+            font-family: 'Syne', sans-serif;
+            font-size: 24px;
+            padding: 24px;
+            color: #FFFFFF;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-brand span {
+            color: #00D4FF;
+        }
+
+        .nav-list {
+            list-style: none;
+            padding: 20px 0;
+            flex-grow: 1;
+        }
+
+        .nav-item {
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            color: #A0A0AB;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(0, 212, 255, 0.08);
+            color: #FFFFFF;
+        }
+
+        .nav-item.active {
+            color: #00D4FF;
+            border-right: 3px solid #00D4FF;
+            background-color: rgba(0, 212, 255, 0.05);
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            fill: currentColor;
+        }
+
+        /* Top Header */
+        .main-content {
+            flex-grow: 1;
+            margin-left: 240px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .top-header {
+            height: 70px;
+            background-color: #111118;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 0 40px;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .username {
+            font-weight: 500;
+            color: #E2E2E8;
+        }
+
+        .btn-logout {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #FFFFFF;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .btn-logout:hover {
+            border-color: #FF4646;
+            color: #FF4646;
+        }
+
+        /* Page Content Area */
+        .page-content {
+            padding: 40px;
+            flex-grow: 1;
+        }
+
+        .page-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 28px;
+            margin-bottom: 24px;
+            color: #FFFFFF;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .flash-message {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .flash-success {
+            background: rgba(46, 204, 113, 0.1);
+            border: 1px solid rgba(46, 204, 113, 0.3);
+            color: #2ECC71;
+        }
+        
+        .flash-error {
+            background: rgba(255, 70, 70, 0.1);
+            border: 1px solid rgba(255, 70, 70, 0.3);
+            color: #FF4646;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Shared Components */
+        .btn-primary {
+            background: #00D4FF;
+            color: #0D0D14;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #00D4FF;
+            padding: 9px 19px;
+            border: 1px solid #00D4FF;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-outline:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .table-container {
+            background: #111118;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            padding: 16px 24px;
+            color: #A0A0AB;
+            font-weight: 500;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        td {
+            padding: 16px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: #E2E2E8;
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+    </style>
+    <!-- Include page specific styles if provided -->
+    <th:block th:insert="~{::style}?: _"></th:block>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-brand">
+            Annotate<span>NLP</span>
+        </div>
+        <ul class="nav-list">
+            <li>
+                <a th:href="@{/admin/datasets}" th:classappend="${currentUri.startsWith('/admin/datasets')} ? 'active' : ''" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/></svg>
+                    Datasets
+                </a>
+            </li>
+            <li>
+                <a th:href="@{/admin/annotators}" th:classappend="${currentUri.startsWith('/admin/annotators')} ? 'active' : ''" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                    Annotateurs
+                </a>
+            </li>
+            <li>
+                <a th:href="@{/admin/metrics}" th:classappend="${currentUri.startsWith('/admin/metrics')} ? 'active' : ''" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+                    Options avancées
+                </a>
+            </li>
+            <li>
+                <a th:href="@{/admin/nlp}" th:classappend="${currentUri.startsWith('/admin/nlp')} ? 'active' : ''" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5L21 16z"/></svg>
+                    NLP Training
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Header -->
+        <header class="top-header">
+            <div class="user-profile">
+                <span class="username" th:text="${#authentication.name}">Admin</span>
+                <form th:action="@{/logout}" method="post" style="display:inline;">
+                    <button type="submit" class="btn-logout">Déconnexion</button>
+                </form>
+            </div>
+        </header>
+
+        <!-- Page Specific Content Injected Here -->
+        <div class="page-content" th:replace="~{::content}"></div>
+    </main>
+
+    <!-- Script to auto hide flash messages -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const flashMsg = document.querySelector('.flash-message');
+            if (flashMsg) {
+                setTimeout(() => {
+                    flashMsg.style.transition = 'opacity 0.5s ease-out';
+                    flashMsg.style.opacity = '0';
+                    setTimeout(() => flashMsg.remove(), 500);
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>

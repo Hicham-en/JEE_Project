@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/layout :: html(content=~{::content})}">
+<head>
+    <title>Créer un Annotateur</title>
+</head>
+<body>
+<div th:fragment="content">
+    <h2>Créer un nouvel annotateur</h2>
+
+    <div th:if="${loginError}" class="alert-danger" th:text="${loginError}"></div>
+
+    <form th:action="@{/admin/annotators/create}" th:object="${annotator}" method="post" class="form-container">
+        
+        <div class="form-group mb-4">
+            <label for="nom">Nom :</label>
+            <input type="text" id="nom" th:field="*{nom}" class="input-field w-full" />
+            <span th:if="${#fields.hasErrors('nom')}" th:errors="*{nom}" class="text-danger block mt-1"></span>
+        </div>
+
+        <div class="form-group mb-4">
+            <label for="prenom">Prénom :</label>
+            <input type="text" id="prenom" th:field="*{prenom}" class="input-field w-full" />
+            <span th:if="${#fields.hasErrors('prenom')}" th:errors="*{prenom}" class="text-danger block mt-1"></span>
+        </div>
+
+        <div class="form-group mb-4">
+            <label for="login">Login :</label>
+            <input type="text" id="login" th:field="*{login}" class="input-field w-full" />
+            <span th:if="${#fields.hasErrors('login')}" th:errors="*{login}" class="text-danger block mt-1"></span>
+        </div>
+
+        <div class="flex gap-2">
+            <button type="submit" class="btn-primary">Enregistrer</button>
+            <a th:href="@{/admin/annotators}" class="btn-secondary">Annuler</a>
+        </div>
+    </form>
+</div>
+</body>
+</html>

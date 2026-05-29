@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>500 - Erreur Serveur | AnnotateNLP</title>
+    <style>
+        body { background-color: #0A0A0F; color: #FFFFFF; font-family: 'DM Sans', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .error-card { text-align: center; border: 1px solid rgba(255, 70, 70, 0.4); padding: 40px; border-radius: 12px; background: rgba(255, 0, 0, 0.02); backdrop-filter: blur(10px); }
+        h1 { color: #FF4646; font-family: 'Space Mono', monospace; font-size: 48px; margin: 0; }
+        p { margin: 20px 0; color: #aaa; }
+        a { color: #FF4646; text-decoration: none; border: 1px solid #FF4646; padding: 10px 20px; border-radius: 6px; transition: all 0.3s ease; }
+        a:hover { background: rgba(255, 70, 70, 0.1); }
+    </style>
+</head>
+<body>
+    <div class="error-card">
+        <h1>500</h1>
+        <p>Une erreur inattendue est survenue côté serveur.</p>
+        <a th:href="@{/}">Retour à l'accueil</a>
+    </div>
+</body>
+</html>

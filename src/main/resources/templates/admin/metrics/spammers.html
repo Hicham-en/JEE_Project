@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html th:replace="~{admin/layout :: html(content=~{::content})}">
+<head>
+    <title>Spammeurs | Admin</title>
+    <style>
+        .score-track { width:180px; height:10px; border-radius:999px; background:rgba(255,255,255,.08); overflow:hidden; }
+        .score-fill { height:100%; background:linear-gradient(90deg,#F9D423,#FF4E50); }
+        .risk { border-radius:999px; padding:6px 10px; font-weight:700; font-size:12px; }
+        .risk-high { background:rgba(255,70,70,.15); color:#FF6464; }
+        .risk-mid { background:rgba(255,165,0,.15); color:#FFA500; }
+        .risk-low { background:rgba(249,212,35,.15); color:#F9D423; }
+    </style>
+</head>
+<body>
+<div th:fragment="content">
+    <!-- Spammer header -->
+    <div class="page-title">
+        <span th:text="'Spammeurs - ' + ${dataset.nom}">Spammeurs</span>
+        <a class="btn-outline" th:href="@{/admin/metrics}">Retour</a>
+    </div>
+
+    <!-- Spammer table -->
+    <div class="table-container">
+        <table>
+            <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Prénom</th>
+                <th>Score suspicion</th>
+                <th>Niveau</th>
+                <th>Raisons</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="spammer : ${spammers}">
+                <td th:text="${spammer.nom}">Nom</td>
+                <td th:text="${spammer.prenom}">Prénom</td>
+                <td>
+                    <div class="score-track">
+                        <div class="score-fill" th:style="'width:' + ${#numbers.formatDecimal(spammer.suspicionScore, 1, 0)} + '%'"></div>
+                    </div>
+                    <div style="margin-top:6px;" th:text="${#numbers.formatDecimal(spammer.suspicionScore, 1, 1)} + '%'">0%</div>
+                </td>
+                <td>
+                    <span th:if="${spammer.suspicionScore > 70}" class="risk risk-high">Très suspect</span>
+                    <span th:if="${spammer.suspicionScore <= 70 and spammer.suspicionScore >= 40}" class="risk risk-mid">Suspect</span>
+                    <span th:if="${spammer.suspicionScore < 40}" class="risk risk-low">À surveiller</span>
+                </td>
+                <td>
+                    <span th:each="raison, stat : ${spammer.raisons}" th:text="${raison + (stat.last ? '' : ' | ')}">raison</span>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(spammers)}">
+                <td colspan="5" style="text-align:center; color:#777; padding:28px;">Aucun annotateur suspect détecté.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

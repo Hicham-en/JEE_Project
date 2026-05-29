@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html th:replace="~{admin/layout :: html(content=~{::content})}">
+<head>
+    <title>Créer Dataset | Admin</title>
+</head>
+<body>
+<div th:fragment="content">
+    
+    <div class="page-title">Créer un Dataset</div>
+
+    <div style="background: #111118; border-radius: 12px; padding: 32px; max-width: 600px; border: 1px solid rgba(255,255,255,0.05);">
+        
+        <div th:if="${fileError}" class="flash-message flash-error" th:text="${fileError}"></div>
+
+        <form th:action="@{/admin/datasets/create}" method="post" enctype="multipart/form-data" th:object="${datasetDTO}" id="createForm">
+            
+            <!-- Drag and Drop Dropzone -->
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; margin-bottom: 8px; color: #A0A0AB; font-weight: 500;">Fichier Dataset (CSV ou JSON) *</label>
+                <div class="dropzone" id="dropzone" style="border: 2px dashed #00D4FF; border-radius: 8px; padding: 40px; text-align: center; cursor: pointer; background: rgba(0, 212, 255, 0.02); transition: background 0.2s;">
+                    <svg style="width: 48px; height: 48px; fill: #00D4FF; margin-bottom: 16px;" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                    <div style="color: #E2E2E8; font-weight: 500; margin-bottom: 8px;">Glissez votre fichier CSV/JSON ici</div>
+                    <div style="color: #666; font-size: 13px;">Format .csv ou .json, Max 50MB</div>
+                    <input type="file" name="file" id="fileInput" accept=".csv,.json" style="display: none;" required>
+                    <div id="fileNameDisplay" style="margin-top: 16px; color: #00D4FF; font-weight: 700; word-break: break-all;"></div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; margin-bottom: 8px; color: #A0A0AB; font-weight: 500;">Nom *</label>
+                <input type="text" th:field="*{nom}" required style="width: 100%; padding: 12px 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #FFF;" placeholder="Ex: Tweets Sentiment Analysis">
+                <span th:if="${#fields.hasErrors('nom')}" th:errors="*{nom}" style="color: #FF4646; font-size: 12px; margin-top: 4px; display: block;"></span>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; margin-bottom: 8px; color: #A0A0AB; font-weight: 500;">Langue *</label>
+                <input type="text" th:field="*{langue}" required style="width: 100%; padding: 12px 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #FFF;" placeholder="Ex: FR, EN">
+                <span th:if="${#fields.hasErrors('langue')}" th:errors="*{langue}" style="color: #FF4646; font-size: 12px; margin-top: 4px; display: block;"></span>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; margin-bottom: 8px; color: #A0A0AB; font-weight: 500;">Classes Possibles (séparées par ';') *</label>
+                <input type="text" th:field="*{classes}" required style="width: 100%; padding: 12px 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #FFF;" placeholder="Positif; Négatif; Neutre">
+                <span th:if="${#fields.hasErrors('classes')}" th:errors="*{classes}" style="color: #FF4646; font-size: 12px; margin-top: 4px; display: block;"></span>
+            </div>
+
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; margin-bottom: 8px; color: #A0A0AB; font-weight: 500;">Description</label>
+                <textarea th:field="*{description}" rows="3" style="width: 100%; padding: 12px 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #FFF;" placeholder="Description optionnelle"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 16px; justify-content: flex-end;">
+                <a th:href="@{/admin/datasets}" class="btn-outline" style="border-color: #FF4646; color: #FF4646;">Annuler</a>
+                <button type="submit" class="btn-primary">Créer Dataset</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Drag and drop JS -->
+    <script>
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const form = document.getElementById('createForm');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+
+        dropzone.addEventListener('click', () => fileInput.click());
+
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.style.background = 'rgba(0, 212, 255, 0.1)';
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.style.background = 'rgba(0, 212, 255, 0.02)';
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.style.background = 'rgba(0, 212, 255, 0.02)';
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                updateFileName();
+            }
+        });
+
+        fileInput.addEventListener('change', updateFileName);
+
+        function updateFileName() {
+            if (fileInput.files.length > 0) {
+                fileNameDisplay.textContent = "Fichier sélectionné : " + fileInput.files[0].name;
+            } else {
+                fileNameDisplay.textContent = "";
+            }
+        }
+
+        form.addEventListener('submit', (e) => {
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const ext = file.name.split('.').pop().toLowerCase();
+                if (ext !== 'csv' && ext !== 'json') {
+                    e.preventDefault();
+                    alert("Erreur : le fichier doit être au format .csv ou .json");
+                }
+            }
+        });
+    </script>
+</div>
+</body>
+</html>

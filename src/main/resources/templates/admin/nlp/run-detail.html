@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html th:replace="~{admin/layout :: html(content=~{::content})}">
+<head>
+    <title>Logs NLP | Admin</title>
+    <style>
+        .run-header { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:20px; }
+        .status-badge { border-radius:999px; padding:7px 12px; font-weight:700; font-size:13px; background:rgba(255,255,255,.08); }
+        .status-RUNNING { color:#00D4FF; animation:pulse 1.5s infinite; }
+        .status-COMPLETED { color:#2ECC71; }
+        .status-FAILED, .status-CANCELLED { color:#FF6464; }
+        .logs-box { background:#020207; color:#D7F7FF; min-height:440px; max-height:60vh; overflow:auto; border:1px solid rgba(0,212,255,.22); border-radius:8px; padding:18px; white-space:pre-wrap; font-family:'Space Mono','Courier New',monospace; font-size:13px; line-height:1.55; }
+        .metrics-grid { display:grid; grid-template-columns:repeat(2,minmax(0,220px)); gap:16px; margin:18px 0; }
+        .metric { background:#111118; border:1px solid rgba(255,255,255,.06); border-radius:8px; padding:18px; }
+        .metric strong { display:block; color:#A0A0AB; margin-bottom:6px; }
+        .metric span { font-size:26px; color:#00D4FF; font-weight:700; }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.45; } }
+    </style>
+</head>
+<body>
+<div th:fragment="content">
+    <!-- Run details header -->
+    <div class="run-header">
+        <div>
+            <h1 class="page-title" style="margin-bottom:8px;" th:text="'Run #' + ${run.id}">Run</h1>
+            <span id="statusBadge" class="status-badge" th:classappend="' status-' + ${run.status}" th:text="${run.status}">RUNNING</span>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <form th:if="${run.status == 'RUNNING'}" th:action="@{/admin/nlp/runs/{id}/cancel(id=${run.id})}" method="post">
+                <button type="submit" class="btn-outline">Arrêter</button>
+            </form>
+            <a th:href="@{/admin/nlp/{id}/new(id=${run.datasetId})}" class="btn-outline">Retour</a>
+        </div>
+    </div>
+
+    <!-- Final metrics -->
+    <div id="metrics" class="metrics-grid" th:if="${run.status == 'COMPLETED'}">
+        <div class="metric"><strong>Accuracy</strong><span id="accuracy" th:text="${run.accuracy != null ? run.accuracy : '-'}">-</span></div>
+        <div class="metric"><strong>F1</strong><span id="f1Score" th:text="${run.f1Score != null ? run.f1Score : '-'}">-</span></div>
+    </div>
+
+    <!-- Live logs -->
+    <pre id="logsBox" class="logs-box" th:text="${run.logs}">Logs...</pre>
+
+    <script th:inline="javascript">
+        const runId = [[${run.id}]];
+        let status = /*[[${run.status}]]*/ 'RUNNING';
+        const logsBox = document.getElementById('logsBox');
+        const statusBadge = document.getElementById('statusBadge');
+
+        function render(payload) {
+            logsBox.textContent = payload.logs || '';
+            logsBox.scrollTop = logsBox.scrollHeight;
+            status = payload.status;
+            statusBadge.textContent = status;
+            statusBadge.className = `status-badge status-${status}`;
+            if (payload.metrics && (payload.metrics.accuracy !== null || payload.metrics.f1Score !== null)) {
+                let metrics = document.getElementById('metrics');
+                if (!metrics) {
+                    metrics = document.createElement('div');
+                    metrics.id = 'metrics';
+                    metrics.className = 'metrics-grid';
+                    logsBox.before(metrics);
+                }
+                metrics.innerHTML = `<div class="metric"><strong>Accuracy</strong><span>${payload.metrics.accuracy ?? '-'}</span></div>
+                    <div class="metric"><strong>F1</strong><span>${payload.metrics.f1Score ?? '-'}</span></div>`;
+            }
+        }
+
+        async function poll() {
+            if (status !== 'RUNNING' && status !== 'PENDING') {
+                return;
+            }
+            const response = await fetch(`/admin/nlp/runs/${runId}/logs`, {headers: {'Accept': 'application/json'}});
+            render(await response.json());
+            if (status === 'RUNNING' || status === 'PENDING') {
+                setTimeout(poll, 3000);
+            }
+        }
+        poll();
+    </script>
+</div>
+</body>
+</html>
