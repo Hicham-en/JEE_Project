@@ -46,3 +46,7 @@ ARCHITECTURE.md
 data/
 images/
 docs/
+
+fix_db.py
+fix_seed_data.py
+update.sql
