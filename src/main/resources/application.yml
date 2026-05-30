@@ -3,5 +3,5 @@ spring:
     active: dev # Profil par defaut
 
 nlp:
-  python-executable: ${NLP_PYTHON_EXECUTABLE:python}
+  python-executable: ${NLP_PYTHON_EXECUTABLE:python3}
   scripts-dir: ${NLP_SCRIPTS_DIR:scripts}

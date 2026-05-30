@@ -49,12 +49,22 @@ public class AssignmentServiceImpl implements IAssignmentService {
     @Override
     @Transactional
     public AssignmentResultDTO assignAnnotators(Long datasetId, List<Long> annotatorIds) {
-        if (annotatorIds == null || annotatorIds.size() < 3) {
-            throw new AssignmentException("Au moins 3 annotateurs sont requis pour une assignation équitable");
+        if (annotatorIds == null || annotatorIds.isEmpty()) {
+            throw new AssignmentException("Sélectionnez au moins un nouvel annotateur");
         }
 
         Dataset dataset = datasetRepository.findById(datasetId)
                 .orElseThrow(() -> new EntityNotFoundException("Dataset introuvable"));
+
+        long activeAssignedAnnotators = taskRepository.findByDatasetId(datasetId).stream()
+                .filter(task -> task.getStatus() != TaskStatus.CANCELLED)
+                .map(task -> task.getAnnotator().getId())
+                .distinct()
+                .count();
+
+        if (activeAssignedAnnotators + annotatorIds.size() < 3) {
+            throw new AssignmentException("Au moins 3 annotateurs doivent être assignés au total");
+        }
 
         List<Annotator> annotators = annotatorRepository.findAllById(annotatorIds);
         if (annotators.size() != annotatorIds.size()) {

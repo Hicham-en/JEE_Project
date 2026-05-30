@@ -7,11 +7,11 @@ import jakarta.validation.constraints.NotBlank;
  */
 public record TextPairDTO(
     Long id,
-    
+
     @NotBlank(message = "Text 1 is required")
     String text1,
-    
+
     String text2,
-    
+
     String metadata
 ) {}

@@ -39,6 +39,8 @@ class AnnotationServiceImplTest {
     @Test
     void testUpsertAnnotation() {
         Task task = task(1L);
+        task.getTextPairs().add(textPair(10L));
+        task.getTextPairs().add(textPair(11L));
         TextPair pair = textPair(10L);
         Annotation existing = new Annotation();
         existing.setId(99L);
@@ -49,7 +51,6 @@ class AnnotationServiceImplTest {
         when(textPairRepository.findById(10L)).thenReturn(Optional.of(pair));
         when(annotationRepository.findByTaskIdAndTextPairIdAndAnnotatorId(1L, 10L, 7L)).thenReturn(Optional.of(existing));
         when(annotationRepository.save(any(Annotation.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(textPairRepository.countByDatasetId(1L)).thenReturn(2L);
         when(annotationRepository.countByTaskId(1L)).thenReturn(1L);
 
         annotationService.saveAnnotation(new AnnotationCreateDTO(1L, 10L, "A"), 7L);
@@ -61,6 +62,7 @@ class AnnotationServiceImplTest {
     @Test
     void testTaskCompletionOnLastAnnotation() {
         Task task = task(1L);
+        task.getTextPairs().add(textPair(10L));
         TextPair pair = textPair(10L);
         when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
         when(textPairRepository.findById(10L)).thenReturn(Optional.of(pair));
@@ -70,13 +72,11 @@ class AnnotationServiceImplTest {
             annotation.setId(100L);
             return annotation;
         });
-        when(textPairRepository.countByDatasetId(1L)).thenReturn(1L);
         when(annotationRepository.countByTaskId(1L)).thenReturn(1L);
 
         annotationService.saveAnnotation(new AnnotationCreateDTO(1L, 10L, "B"), 7L);
 
         assertEquals(TaskStatus.COMPLETED, task.getStatus());
-        verify(taskRepository).save(task);
     }
 
     private Task task(Long id) {

@@ -106,6 +106,7 @@ public class MetricsServiceImpl implements IMetricsService {
 
         long totalAssignments = 0;
         double sumPi = 0.0;
+        int eligibleItems = 0;
         Map<String, Integer> sumClassAssignments = new HashMap<>();
 
         for (String c : allClasses) {
@@ -116,22 +117,29 @@ public class MetricsServiceImpl implements IMetricsService {
             Map<String, Integer> itemClasses = entry.getValue();
             int nForItem = itemClasses.values().stream().mapToInt(Integer::intValue).sum();
 
+            // Fleiss Kappa measures inter-annotator agreement and requires at least 2 ratings per item.
+            if (nForItem < 2) {
+                continue;
+            }
+
+            eligibleItems++;
             totalAssignments += nForItem;
 
             for (Map.Entry<String, Integer> classEntry : itemClasses.entrySet()) {
                 sumClassAssignments.put(classEntry.getKey(), sumClassAssignments.get(classEntry.getKey()) + classEntry.getValue());
             }
 
-            if (nForItem > 1) {
-                double sumOfSquares = itemClasses.values().stream().mapToDouble(val -> val * val).sum();
-                double pi = (sumOfSquares - nForItem) / ((double) nForItem * (nForItem - 1));
-                sumPi += pi;
-            } else if (nForItem == 1) {
-                sumPi += 1.0;
-            }
+            double sumOfSquares = itemClasses.values().stream().mapToDouble(val -> val * val).sum();
+            double pi = (sumOfSquares - nForItem) / ((double) nForItem * (nForItem - 1));
+            sumPi += pi;
         }
 
-        double pBar = sumPi / N;
+        if (eligibleItems == 0 || totalAssignments == 0) {
+            return new MetricsDTO(datasetId, 0.0, uniqueAnnotators.size(), N,
+                    "Données insuffisantes (au moins 2 annotations par texte requises)");
+        }
+
+        double pBar = sumPi / eligibleItems;
         double pe = 0.0;
 
         for (String c : allClasses) {
@@ -161,9 +169,9 @@ public class MetricsServiceImpl implements IMetricsService {
      * Détecte les annotateurs suspects (spammers).
      * <br>
      * Pondérations ajustables du suspicionScore :
-     * - Entropie (40%) : Score croissant quand l'entropie de Shannon diminue (score = 1 - H). Suspect si H < 0.15.
-     * - Temps moyen (30%) : Score maximal si le temps de réponse est très court (score = max(0, 1 - avgTime/5.0s)).
-     * - Cohen Kappa (30%) : Score croissant quand l'accord inter-annotateur (Cohen's Kappa moyen) est bas (score = (1 - kappa) / 2).
+     * - Entropie (35%) : Score croissant quand l'entropie de Shannon diminue (score = 1 - H).
+     * - Temps moyen (20%) : Score maximal si le temps de réponse est très court (score = max(0, 1 - avgTime/5.0s)).
+     * - Cohen Kappa (45%) : Score croissant quand l'accord inter-annotateur (Cohen's Kappa moyen) est bas (score = (1 - kappa) / 2).
      */
     @Override
     @Transactional(readOnly = true)
@@ -206,19 +214,27 @@ public class MetricsServiceImpl implements IMetricsService {
             }
             double meanKappa = comparisons > 0 ? (totalKappa / comparisons) : 1.0;
 
+            // 4. Class dominance ratio (helps detect "always same class" even when entropy threshold is not crossed)
+            long maxClassCount = classCounts.values().stream().mapToLong(Long::longValue).max().orElse(0L);
+            double dominantClassRatio = total > 0 ? (double) maxClassCount / total : 0.0;
+
             // Computing individual dimension suspicion scores [0, 1]
             double scoreEntropy = Math.max(0.0, 1.0 - normalizedH);
             double scoreTime = Math.max(0.0, 1.0 - (avgTime / 5.0)); // Highly suspicious if < 5s average
             double scoreKappa = Math.max(0.0, (1.0 - meanKappa) / 2.0); // -1 -> 1.0, 1 -> 0.0
 
-            double suspicionScore = (0.40 * scoreEntropy) + (0.30 * scoreTime) + (0.30 * scoreKappa);
+            double suspicionScore = (0.35 * scoreEntropy) + (0.20 * scoreTime) + (0.45 * scoreKappa);
 
             List<String> reasons = new ArrayList<>();
             if (normalizedH < 0.15) reasons.add(String.format("Entropie très faible (%.2f < 0.15) : tendance à toujours choisir la même classe.", normalizedH));
             if (avgTime < 3.0) reasons.add(String.format("Temps d'annotation très rapide (%.1fs/élément en moyenne).", avgTime));
             if (meanKappa < 0.2) reasons.add(String.format("Accord très faible avec les autres annotateurs (Cohen Kappa moyen = %.2f).", meanKappa));
+            if (dominantClassRatio >= 0.90) reasons.add(String.format("Classe dominante excessive (%.0f%% des réponses sur une seule classe).", dominantClassRatio * 100));
 
-            if (normalizedH < 0.15 || suspicionScore > 0.6) {
+            boolean severeLowAgreement = total >= 8 && meanKappa <= 0.0;
+            boolean extremeDominance = total >= 8 && dominantClassRatio >= 0.90;
+
+            if (normalizedH < 0.15 || severeLowAgreement || extremeDominance || suspicionScore >= 0.50) {
                 spammers.add(new SpammerDTO(
                         annotator.getId(),
                         annotator.getNom(),

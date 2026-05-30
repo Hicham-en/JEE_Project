@@ -34,7 +34,9 @@ public class ExportService {
      */
     @Transactional(readOnly = true)
     public byte[] exportDatasetCsv(Long datasetId) {
-        StringBuilder csv = new StringBuilder("id,text1,text2,chosenClass,annotatorLogin,annotationTime\n");
+        StringBuilder csv = new StringBuilder();
+        csv.append('\ufeff');
+        csv.append("id,text1,text2,chosenClass,annotatorLogin,annotationTime\n");
         for (Annotation annotation : annotationRepository.findByTaskDatasetId(datasetId)) {
             csv.append(annotation.getTextPair().getId()).append(',')
                     .append(escapeCsv(annotation.getTextPair().getText1())).append(',')

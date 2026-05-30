@@ -86,6 +86,7 @@ public class AnnotationServiceImpl implements IAnnotationService {
             annotation.setTextPair(textPair);
             annotation.setAnnotator((Annotator) task.getAnnotator());
             annotation.setSource("WEB");
+            task.getAnnotations().add(annotation);
         }
 
         annotation.setChosenClass(dto.chosenClass());
@@ -95,15 +96,13 @@ public class AnnotationServiceImpl implements IAnnotationService {
         log.info("Annotation saved taskId={} textPairId={} annotatorId={}", task.getId(), textPair.getId(), annotatorId);
 
         // Update task status based on count
-        long totalPairs = textPairRepository.countByDatasetId(task.getDataset().getId());
+        long totalPairs = task.getTextPairs().size();
         long annotatedCount = annotationRepository.countByTaskId(task.getId());
         
         if (annotatedCount >= totalPairs && task.getStatus() != TaskStatus.COMPLETED) {
             task.setStatus(TaskStatus.COMPLETED);
-            taskRepository.save(task);
         } else if (annotatedCount > 0 && task.getStatus() == TaskStatus.PENDING) {
             task.setStatus(TaskStatus.IN_PROGRESS);
-            taskRepository.save(task);
         }
 
         return new AnnotationDTO(

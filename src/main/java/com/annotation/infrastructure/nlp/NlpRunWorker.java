@@ -119,7 +119,11 @@ public class NlpRunWorker {
     private List<String> buildCommand(NLPRun run, Path datasetFile, Long trainingRunId) {
         List<String> command = new ArrayList<>();
         command.add(pythonExecutable);
-        Path scriptFile = scriptsPath.resolve(run.getScriptPath()).normalize();
+        String scriptPathStr = run.getScriptPath();
+        if (scriptPathStr != null && scriptPathStr.startsWith("/")) {
+            scriptPathStr = scriptPathStr.substring(1);
+        }
+        Path scriptFile = scriptsPath.resolve(scriptPathStr).normalize();
         command.add(scriptFile.toString());
         command.add("--dataset");
         command.add(datasetFile.toAbsolutePath().toString());

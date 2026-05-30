@@ -23,17 +23,26 @@ public class CsvParser implements IDatasetParser {
         try (CSVReader csvReader = new CSVReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
             String[] line;
             boolean firstLine = true;
+            boolean hasIdColumn = false;
+            
             while ((line = csvReader.readNext()) != null) {
                 if (firstLine) {
                     firstLine = false;
                     if (isHeaderRow(line)) {
+                        String firstColumn = line[0].trim().toLowerCase();
+                        if ("id".equals(firstColumn) || "id_text".equals(firstColumn)) {
+                            hasIdColumn = true;
+                        }
                         continue;
                     }
                 }
                 
-                if (line.length >= 1 && !line[0].trim().isEmpty()) {
-                    String text1 = line[0].trim();
-                    String text2 = line.length >= 2 ? line[1].trim() : null;
+                int text1Idx = hasIdColumn ? 1 : 0;
+                int text2Idx = hasIdColumn ? 2 : 1;
+                
+                if (line.length > text1Idx && !line[text1Idx].trim().isEmpty()) {
+                    String text1 = line[text1Idx].trim();
+                    String text2 = line.length > text2Idx ? line[text2Idx].trim() : null;
                     if (text2 != null && text2.isEmpty()) {
                         text2 = null;
                     }
@@ -52,6 +61,7 @@ public class CsvParser implements IDatasetParser {
 
         String firstColumn = line[0].trim().toLowerCase();
         return "id".equals(firstColumn)
+                || "id_text".equals(firstColumn)
                 || "text".equals(firstColumn)
                 || "text1".equals(firstColumn)
                 || "texte".equals(firstColumn)

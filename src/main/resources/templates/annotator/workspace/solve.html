@@ -7,25 +7,38 @@
 <div>
     <h2>Annotation du dataset: <span th:text="${dataset.nom}"></span></h2>
 
-    <div th:each="tp : ${textPairs}">
-        <div style="border: 1px solid #ccc; margin: 10px; padding: 10px;">
-            <p><strong>Texte 1:</strong> <span th:text="${tp.text1}"></span></p>
-            <p><strong>Texte 2:</strong> <span th:text="${tp.text2}"></span></p>
+    <div th:if="${successMessage}" style="margin: 10px; padding: 10px; border: 1px solid #2f9e44; color: #2f9e44; border-radius: 4px;"
+         th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" style="margin: 10px; padding: 10px; border: 1px solid #c92a2a; color: #c92a2a; border-radius: 4px;"
+         th:text="${errorMessage}"></div>
 
-            <form th:action="@{/annotator/workspace/task/{id}/annotate(id=${task.id})}" method="post">
-                <input type="hidden" name="textPairId" th:value="${tp.id}" />
+    <form th:action="@{/annotator/workspace/task/{id}/annotate-all(id=${task.id})}" method="post">
+        <div th:each="tp : ${textPairs}">
+            <div style="border: 1px solid #ccc; margin: 10px; padding: 10px;">
+                <p th:if="${tp.text1 != null}"><strong>Texte 1:</strong> <span th:text="${tp.text1}"></span></p>
+                <p th:if="${tp.text2 != null}"><strong>Texte 2:</strong> <span th:text="${tp.text2}"></span></p>
+
                 <label>Classe Choisie:</label>
-                <select name="chosenClass" required>
-                    <option value="" disabled selected>Choisir une classe</option>
+                <select th:name="|chosenClassByTextPairId[${tp.id}]|">
+                    <option value="" th:selected="${userAnnotations[tp.id] == null}">Choisir une classe</option>
                     <option th:each="pc : ${dataset.possibleClasses}" 
-                            th:value="${pc.nom}" 
-                            th:text="${pc.nom}">
+                            th:value="${pc.libelle}" 
+                            th:text="${pc.libelle}"
+                            th:selected="${userAnnotations[tp.id] != null and userAnnotations[tp.id] == pc.libelle}">
                     </option>
                 </select>
-                <button type="submit">Valider</button>
-            </form>
+
+                <button type="submit"
+                        name="singleTextPairId"
+                        th:value="${tp.id}"
+                        th:formaction="@{/annotator/workspace/task/{id}/annotate-all(id=${task.id})}">Valider</button>
+            </div>
         </div>
-    </div>
+
+        <div style="margin: 16px 10px;">
+            <button type="submit">Valider tout</button>
+        </div>
+    </form>
     
     <div style="margin-top: 20px;">
         <a th:href="@{/annotator/workspace}">Retour à la liste</a>

@@ -21,8 +21,10 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -50,7 +52,19 @@ class AssignmentServiceImplTest {
 
     @Test
     void testAssignLessThan3Throws() {
+        prepareDataset(10, 2);
+        when(taskRepository.findByDatasetId(1L)).thenReturn(List.of());
+
         assertThrows(AssignmentException.class, () -> assignmentService.assignAnnotators(1L, List.of(1L, 2L)));
+    }
+
+    @Test
+    void testCanAddAnnotatorWhenDatasetAlreadyHasThree() {
+        prepareDataset(10, 1);
+        when(taskRepository.findByDatasetId(1L)).thenReturn(existingTasks(3));
+        when(annotatorRepository.findAllById(any())).thenReturn(List.of(annotator(4L)));
+
+        assertDoesNotThrow(() -> assignmentService.assignAnnotators(1L, List.of(4L)));
     }
 
     @Test
@@ -84,17 +98,17 @@ class AssignmentServiceImplTest {
     private void prepareDataset(int textCount, int annotatorCount) {
         Dataset dataset = new Dataset();
         dataset.setId(1L);
-        when(datasetRepository.findById(1L)).thenReturn(Optional.of(dataset));
-        when(textPairRepository.findByDatasetIdOrderByIdAsc(1L)).thenReturn(textPairs(textCount));
-        when(annotatorRepository.findAllById(any())).thenReturn(annotators(annotatorCount));
+        lenient().when(datasetRepository.findById(1L)).thenReturn(Optional.of(dataset));
+        lenient().when(textPairRepository.findByDatasetIdOrderByIdAsc(1L)).thenReturn(textPairs(textCount));
+        lenient().when(annotatorRepository.findAllById(any())).thenReturn(annotators(annotatorCount));
+        lenient().when(taskRepository.findByDatasetId(1L)).thenReturn(List.of());
     }
 
     private List<Task> savedTasks() {
-        ArgumentCaptor<Iterable<Task>> captor = ArgumentCaptor.forClass(Iterable.class);
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<Task>> captor = ArgumentCaptor.forClass(List.class);
         verify(taskRepository, org.mockito.Mockito.atLeastOnce()).saveAll(captor.capture());
-        List<Task> tasks = new ArrayList<>();
-        captor.getValue().forEach(tasks::add);
-        return tasks;
+        return new ArrayList<>(captor.getValue());
     }
 
     private List<TextPair> textPairs(int count) {
@@ -111,12 +125,32 @@ class AssignmentServiceImplTest {
     private List<Annotator> annotators(int count) {
         List<Annotator> annotators = new ArrayList<>();
         for (long i = 1; i <= count; i++) {
-            Annotator annotator = new Annotator();
-            annotator.setId(i);
-            annotator.setNom("Nom" + i);
-            annotator.setPrenom("Prenom" + i);
-            annotators.add(annotator);
+            annotators.add(annotator(i));
         }
         return annotators;
+    }
+
+    private Annotator annotator(long id) {
+        Annotator annotator = new Annotator();
+        annotator.setId(id);
+        annotator.setNom("Nom" + id);
+        annotator.setPrenom("Prenom" + id);
+        return annotator;
+    }
+
+    private List<Task> existingTasks(int count) {
+        List<Task> tasks = new ArrayList<>();
+        for (long i = 1; i <= count; i++) {
+            Task task = new Task();
+            task.setId(i);
+            Annotator annotator = new Annotator();
+            annotator.setId(i);
+            annotator.setNom("Existing" + i);
+            annotator.setPrenom("Annotator" + i);
+            task.setAnnotator(annotator);
+            task.setStatus(com.annotation.domain.entity.TaskStatus.PENDING);
+            tasks.add(task);
+        }
+        return tasks;
     }
 }

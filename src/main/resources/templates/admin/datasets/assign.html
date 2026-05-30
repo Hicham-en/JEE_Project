@@ -15,7 +15,7 @@
     <div style="background: #111118; border-radius: 12px; padding: 32px; max-width: 800px; border: 1px solid rgba(255,255,255,0.05);">
         
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-            <p style="color: #A0A0AB;">Sélectionnez au moins 3 annotateurs pour procéder à l'assignation équilibrée (Algorithme Round-robin sur textes mélangés).</p>
+            <p style="color: #A0A0AB;">Sélectionnez au moins 1 nouvel annotateur, avec 3 annotateurs actifs ou plus au total, pour procéder à l'assignation équilibrée (Algorithme Round-robin sur textes mélangés).</p>
             <div id="counterBadge" style="background: rgba(255, 70, 70, 0.1); border: 1px solid rgba(255, 70, 70, 0.3); color: #FF4646; font-weight: 700; padding: 6px 12px; border-radius: 6px; font-size: 14px;">
                 0 annotateur sélectionné
             </div>
@@ -63,7 +63,7 @@
 
             <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 24px;">
                 <a th:href="@{/admin/datasets/{id}(id=${dataset.id})}" class="btn-outline">Annuler</a>
-                <button type="submit" class="btn-primary" id="btnSubmit" disabled style="opacity: 0.5; cursor: not-allowed;" title="Sélectionnez au moins 3 annotateurs">
+                <button type="submit" class="btn-primary" id="btnSubmit" disabled style="opacity: 0.5; cursor: not-allowed;" title="Sélectionnez au moins 1 nouvel annotateur et atteignez 3 annotateurs au total">
                     Valider Assignation
                 </button>
             </div>
@@ -87,7 +87,7 @@
                 
                 counterBadge.textContent = total + " annotateur(s) assigné(s) / sélectionné(s)";
                 
-                if (total >= 3) {
+                if (checkedCount > 0 && total >= 3) {
                     counterBadge.style.background = 'rgba(46, 204, 113, 0.1)';
                     counterBadge.style.borderColor = 'rgba(46, 204, 113, 0.3)';
                     counterBadge.style.color = '#2ECC71';
@@ -104,7 +104,7 @@
                     btnSubmit.disabled = true;
                     btnSubmit.style.opacity = '0.5';
                     btnSubmit.style.cursor = 'not-allowed';
-                    btnSubmit.setAttribute('title', 'Sélectionnez au moins 3 annotateurs au total');
+                    btnSubmit.setAttribute('title', 'Sélectionnez au moins 1 nouvel annotateur et atteignez 3 annotateurs au total');
                 }
             }
 

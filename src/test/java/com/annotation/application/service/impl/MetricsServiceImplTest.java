@@ -72,6 +72,25 @@ class MetricsServiceImplTest {
     }
 
     @Test
+    void testFleissKappaInsufficientWhenOnlyOneAnnotationPerItem() {
+        List<Annotation> annotations = new ArrayList<>();
+        Annotator a1 = annotator(1L);
+        Annotator a2 = annotator(2L);
+        for (long i = 1; i <= 10; i++) {
+            TextPair pair = textPair(i);
+            String label = i % 2 == 0 ? "A" : "B";
+            Annotator annotator = i % 2 == 0 ? a1 : a2;
+            annotations.add(annotation(pair, annotator, label, 5L));
+        }
+        when(annotationRepository.findByTaskDatasetId(1L)).thenReturn(annotations);
+
+        MetricsDTO metrics = metricsService.computeFleissKappa(1L);
+
+        assertEquals(0.0, metrics.fleissKappa(), 0.001);
+        assertTrue(metrics.interpretation().startsWith("Données insuffisantes"));
+    }
+
+    @Test
     void testSpammerDetectionSameClassAlways() {
         List<Annotation> annotations = new ArrayList<>();
         Annotator spammer = annotator(1L);
@@ -87,6 +106,27 @@ class MetricsServiceImplTest {
 
         assertFalse(spammers.isEmpty());
         assertTrue(spammers.getFirst().suspicionScore() > 70.0);
+    }
+
+    @Test
+    void testSpammerDetectionLowAgreementPattern() {
+        List<Annotation> annotations = new ArrayList<>();
+        Annotator spammer = annotator(1L);
+        Annotator peer = annotator(2L);
+
+        for (long i = 1; i <= 20; i++) {
+            TextPair pair = textPair(i);
+            String peerLabel = i <= 10 ? "A" : "B";
+            String spammerLabel = i <= 10 ? "B" : "A";
+            annotations.add(annotation(pair, spammer, spammerLabel, null));
+            annotations.add(annotation(pair, peer, peerLabel, null));
+        }
+        when(annotationRepository.findByTaskDatasetId(1L)).thenReturn(annotations);
+
+        List<SpammerDTO> spammers = metricsService.detectSpammers(1L);
+
+        assertFalse(spammers.isEmpty());
+        assertTrue(spammers.stream().anyMatch(s -> s.annotatorId().equals(1L)));
     }
 
     private TextPair textPair(Long id) {
